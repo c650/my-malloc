@@ -103,6 +103,46 @@ void *my_malloc(size_t bytes) {
 
 }
 
+void *my_calloc(size_t nmemb, size_t size) {
+	
+	/* cast to char* to deal with bytes */
+	char *mem = (char*)my_malloc(nmemb * size);
+
+	for (int i = 0, n = nmemb * size; i < n; i++) {
+		mem[i] = 0x00;
+	}
+
+	return (void*)mem;
+}
+
+void *my_realloc(void *ptr, size_t size) {
+	if (ptr == NULL) {
+		return my_malloc(size);
+	} else if (size == 0) {
+		my_free(ptr);
+	}
+
+	if ( ptr < (void*)((char*)_session->_first_chunk + sizeof(_chunk))
+		|| ptr > (void*)((char*)_session->_last_chunk + sizeof(_chunk)) ) {
+		perror("Cannot realloc that pointer!");
+		exit(4);
+	}
+
+	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
+
+	/* We have to make a bigger chunk if _more_ memory is requested. */
+	if (size > c->_chunk_sz) {
+		char *new_mem = (char*)my_malloc( size );
+		for (int i = 0; i < c->_chunk_sz; i++) {
+			new_mem[i] = ((char*)ptr)[i];
+		}
+		my_free(ptr);
+		ptr = (void*)new_mem;
+	}
+
+	return ptr;
+}
+
 void my_free(void *ptr) {
 
 	printf("[*] Now freeing...\n");
@@ -120,16 +160,16 @@ void my_free(void *ptr) {
 	/* if it's last chunk we should just shrink the p_break */
 	if (_session->_last_chunk == c) {
 
+		_session->_last_chunk = c->prev;
+		
+		if (c == _session->_first_chunk)
+			_session->_first_chunk = NULL;
+
 		if ( brk(c) < 0 ) {
 			perror("Couldn't deallocate last chunk...");
 		}
 
-		c = NULL;
-		_session->_last_chunk = NULL;
 		_session->_chunks_allocated--;
-
-		if (c == _session->_first_chunk)
-			_session->_first_chunk = NULL;
 
 		return;
 	}

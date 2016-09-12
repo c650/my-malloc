@@ -24,4 +24,41 @@ int main(void) {
 	}
 	my_free(arr);
 
+	printf("Testing my_calloc\n");
+	long *larr = my_calloc(16, sizeof(long));
+	for (int i = 0; i < 16; i++) {
+		printf("%li ", larr[i]);
+		larr[i] = 10101;
+		printf("%li ", larr[i]);
+	}
+	printf("\n");
+
+	my_free(larr);
+
+	larr = my_calloc(17, sizeof(long));
+	for (int i = 0; i < 17; i++) {
+		printf("%li ", larr[i]);
+		larr[i] = 595959;	
+	}
+	printf("\n");
+
+	int *buf = (int*)my_malloc(sizeof(int));
+
+	printf("Reallocate larr to 300\n");
+	long *larr_tmp;
+	if ((larr_tmp = my_realloc(larr, 300)) == NULL) {
+		perror("couldn't reallocate larr");
+		exit(6);
+	}
+	printf("larr = %p\nlarr_tmp = %p\n", larr, larr_tmp);
+	larr = larr_tmp;
+
+	for (int i = 0; i < 300; i++) {
+		printf("%li ", larr[i]);
+	}
+	printf("\n");
+
+	my_free(larr);
+	my_free(buf);
+
 }

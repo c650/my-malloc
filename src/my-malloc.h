@@ -36,6 +36,11 @@ typedef struct _mem_session {
 extern _mem_session *_session;
 
 void *my_malloc(size_t bytes);
+
+void *my_calloc(size_t nmemb, size_t size);
+
+void *my_realloc(void *ptr, size_t size);
+
 void my_free(void *ptr);
 
 void   _create_session();
