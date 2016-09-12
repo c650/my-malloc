@@ -120,6 +120,7 @@ void *my_realloc(void *ptr, size_t size) {
 		return my_malloc(size);
 	} else if (size == 0) {
 		my_free(ptr);
+		return NULL;
 	}
 
 	if ( ptr < (void*)((char*)_session->_first_chunk + sizeof(_chunk))
@@ -161,7 +162,7 @@ void my_free(void *ptr) {
 	if (_session->_last_chunk == c) {
 
 		_session->_last_chunk = c->prev;
-		
+
 		if (c == _session->_first_chunk)
 			_session->_first_chunk = NULL;
 
