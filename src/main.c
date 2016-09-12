@@ -45,7 +45,7 @@ int main(void) {
 	int *buf = (int*)my_malloc(sizeof(int));
 
 	printf("Reallocate larr to 300\n");
-	long *larr_tmp;
+	long *larr_tmp = NULL;
 	if ((larr_tmp = my_realloc(larr, 300)) == NULL) {
 		perror("couldn't reallocate larr");
 		exit(6);
@@ -53,11 +53,15 @@ int main(void) {
 	printf("larr = %p\nlarr_tmp = %p\n", larr, larr_tmp);
 	larr = larr_tmp;
 
+	/*
+		larr[17-299] wont be initialized formally so this will cause
+		valgrind to freak out.
+	
 	for (int i = 0; i < 300; i++) {
 		printf("%li ", larr[i]);
 	}
 	printf("\n");
-
+	*/
 	my_free(larr);
 	my_free(buf);
 
