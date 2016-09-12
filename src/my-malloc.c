@@ -39,6 +39,15 @@ void *my_malloc(size_t bytes) {
 
 		c->prev = _session->_last_chunk;
 		c->next = NULL;
+
+		/*
+			The current last chunk should have its
+			`next` attr point to c before we make the
+			last chunk in the session point to c.
+		*/
+		if (_session->_last_chunk)
+			_session->_last_chunk->next = c;
+
 		_session->_last_chunk = c;
 
 		_session->_chunks_allocated++;
@@ -53,6 +62,9 @@ void *my_malloc(size_t bytes) {
 
 		c->_free = NOT_FREE;
 
+		/* 
+			Can we shrink the chunk ?
+		*/
 		if (c->_chunk_sz >= cnt + (4 + sizeof(_chunk) )) {
 
 			size_t extra = c->_chunk_sz - cnt - sizeof(_chunk);
@@ -71,19 +83,15 @@ void *my_malloc(size_t bytes) {
 
 			_session->_chunks_allocated++;
 
-			/* shrink program break if c was the last chunk */
+			/* remove new_chunk from memory if `c` was the last chunk until now */
 			if (_session->_last_chunk == c) {
 				if ( brk(new_chunk) < 0) {
 					perror("Couldn't deallocate last chunk...");
 				}
-				new_chunk = NULL;
-				_session->_last_chunk = NULL;
-				_session->_chunks_allocated--;
-
-				if (c == _session->_first_chunk)
-					_session->_first_chunk = NULL;
+				new_chunk = NULL; // just in case...
 
 				_session->_chunks_allocated--;
+
 			}
 
 		}
@@ -98,6 +106,12 @@ void *my_malloc(size_t bytes) {
 void my_free(void *ptr) {
 
 	printf("[*] Now freeing...\n");
+
+	if ( ptr < (void*)((char*)_session->_first_chunk + sizeof(_chunk))
+		|| ptr > (void*)((char*)_session->_last_chunk + sizeof(_chunk)) ) {
+		perror("Invalid Free. Out of range!");
+		exit(3);
+	}
 
 	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
@@ -121,31 +135,15 @@ void my_free(void *ptr) {
 	}
 
 	/*
-		Shouldn't have two frees back-to-back
+		Shouldn't have two free chunks back-to-back
 	*/
 	if (c->next != NULL && c->next->_free == FREE) {
 		
-		_chunk *n = c->next;
-
-		c->_chunk_sz += n->_chunk_sz + sizeof(_chunk);
-		
-		c->next = n->next;
-		if (n->next != NULL)
-			n->next->prev = c;
-
-		_session->_chunks_allocated--;
+		_merge_chunks(c, c->next);
 
 	} else if (c->prev != NULL && c->prev->_free == FREE) {
 
-		_chunk *p = c->prev;
-
-		p->_chunk_sz += c->_chunk_sz + sizeof(_chunk);
-
-		p->next = c->next;
-		if (c->next != NULL)
-			c->next->prev = p;
-
-		_session->_chunks_allocated--;
+		_merge_chunks(c->prev, c);
 
 	}
 
@@ -160,14 +158,12 @@ void _create_session() {
 		exit(2);
 	}
 
-	printf("here?\n");
 	_session = (_mem_session*)ptr;
 
-	printf("here??\n");
+	/* go ahead and initialize attributes of _session */
 	_session->_first_chunk = NULL;
 	_session->_last_chunk = NULL;
 
-	printf("what about this?\n");
 	_session->_chunks_allocated = 0;
 
 }
@@ -179,4 +175,15 @@ _chunk *_find_free_chunk(size_t bytes) {
 		curr = curr->next;
 
 	return curr;
+}
+
+void _merge_chunks(_chunk *a, _chunk *b) {
+
+	a->_chunk_sz += b->_chunk_sz + sizeof(_chunk);
+
+	a->next = b->next;
+	if (b->next)
+		b->next->prev = a;
+
+	_session->_chunks_allocated--;
 }

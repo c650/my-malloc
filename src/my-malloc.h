@@ -41,4 +41,13 @@ void my_free(void *ptr);
 void   _create_session();
 _chunk *_find_free_chunk( size_t bytes );
 
+/*
+	_merge_chunks
+	@param a the chunk into which b is merged
+	@param b the chunk to merge into a
+
+	The chunks should be side-by-side in memory.
+*/
+void _merge_chunks(_chunk *a, _chunk *b);
+
 #endif
