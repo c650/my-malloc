@@ -6,8 +6,9 @@
 #ifndef MY_MALLOC_HDR
 #define MY_MALLOC_HDR
 
-#define FREE 1
-#define NOT_FREE 0
+typedef enum _free_t {
+	NOT_FREE, FREE
+} _free_t;
 
 /*
 	Defining a basic chunk type here.
@@ -20,7 +21,7 @@ typedef struct _chunk {
 	size_t  _chunk_sz; /* not including metadata */
 
 	/* to see if the chunk is free: */
-	unsigned char _free;
+	_free_t _free;
 
 	struct _chunk  *next,
 	              *prev;
