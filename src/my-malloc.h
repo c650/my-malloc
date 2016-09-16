@@ -13,7 +13,7 @@ typedef enum _free_t {
 /*
 	Defining a basic chunk type here.
 
-	It should pad to be the next power of 2 >=
+	It should pad to be the next multiple of 4 >=
 	user-requested amount of memory.
 
 */
