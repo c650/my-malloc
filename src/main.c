@@ -10,12 +10,12 @@ int main(void) {
 
 	num = my_malloc(sizeof(int));
 	*num = 10101;
-	printf("num = %p\n*num = %i\n", num, *num);
+	//printf("num = %p\n*num = %i\n", num, *num);
 	my_free(num);
 
 	lnum = my_malloc(sizeof(long));
 	*lnum = 101010;
-	printf("lnum = %p\n*lnum = %li\n", lnum, *lnum);
+	//printf("lnum = %p\n*lnum = %li\n", lnum, *lnum);
 	my_free(lnum);
 
 	arr = my_malloc(sizeof(int) * 5);
@@ -24,45 +24,38 @@ int main(void) {
 	}
 	my_free(arr);
 
-	printf("Testing my_calloc\n");
+	//printf("Testing my_calloc\n");
 	long *larr = my_calloc(16, sizeof(long));
 	for (int i = 0; i < 16; i++) {
-		printf("%li ", larr[i]);
+		//printf("%li ", larr[i]);
 		larr[i] = 10101;
-		printf("%li ", larr[i]);
+		//printf("%li ", larr[i]);
 	}
-	printf("\n");
+	//printf("\n");
 
 	my_free(larr);
 
 	larr = my_calloc(17, sizeof(long));
 	for (int i = 0; i < 17; i++) {
-		printf("%li ", larr[i]);
+		//printf("%li ", larr[i]);
 		larr[i] = 595959;	
 	}
-	printf("\n");
+	//printf("\n");
 
 	int *buf = (int*)my_malloc(sizeof(int));
 
-	printf("Reallocate larr to 300\n");
+	printf("Reallocate larr to %i\n", (int)(30 * sizeof(long)));
 	long *larr_tmp = NULL;
-	if ((larr_tmp = my_realloc(larr, 300)) == NULL) {
+	if ((larr_tmp = my_realloc(larr, 30 * sizeof(long) )) == NULL) {
 		perror("couldn't reallocate larr");
 		exit(6);
 	}
 	printf("larr = %p\nlarr_tmp = %p\n", larr, larr_tmp);
 	larr = larr_tmp;
 
-	/*
-		larr[17-299] wont be initialized formally so this will cause
-		valgrind to freak out.
-	
-	for (int i = 0; i < 300; i++) {
-		printf("%li ", larr[i]);
-	}
-	printf("\n");
-	*/
 	my_free(larr);
 	my_free(buf);
+
+	printf("end.\n");
 
 }
