@@ -54,6 +54,8 @@ int main(void) {
 	larr = larr_tmp;
 
 	my_free(larr);
+
+	printf("freeing %p\n", buf);
 	my_free(buf);
 
 	printf("end.\n");

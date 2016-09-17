@@ -8,10 +8,10 @@
 #include "my-malloc.h"
 
 static _mem_session *_session = NULL;
-static int _debug_itr = 0;
+//static int _debug_itr = 0;
 
 #include <stdarg.h>
-#define DEBUG
+//#define DEBUG
 static void debug(char* fmt, ...) {
 	#ifdef DEBUG
 
@@ -42,6 +42,8 @@ void *my_malloc(size_t bytes) {
 
 	_chunk *c = _find_free_chunk( cnt );
 
+	debug("\t_session->_first_free_chunk = %p\n", _session->_first_free_chunk);
+	debug("\t_session->_last_free_chunk = %p\n", _session->_last_free_chunk);
 	if (c == NULL) {
 
 		void *ptr;
@@ -117,11 +119,15 @@ void *my_malloc(size_t bytes) {
 
 			new_chunk->_free = FREE;
 
+			if (_session->_first_free_chunk == NULL)
+				_session->_first_free_chunk = new_chunk;
+
 			if (_session->_last_free_chunk)
 				_session->_last_free_chunk->next_free = new_chunk;
 
 			new_chunk->prev_free = _session->_last_free_chunk;
 			_session->_last_free_chunk = new_chunk;
+			new_chunk->next_free = NULL;
 
 
 			new_chunk->_chunk_sz = extra;
@@ -186,17 +192,15 @@ void *my_realloc(void *ptr, size_t size) {
 
 void my_free(void *ptr) {
 
-	//debug("[*] Now freeing... %p\n", ptr);
+	debug("my_free(%p)\n", ptr);
+
+	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
 	/* verify that the pointer is in our heap range */
-	if ( ptr < (void*)((char*)_session->_first_chunk + sizeof(_chunk))
-		|| ptr > (void*)((char*)_session->_last_chunk + sizeof(_chunk)) ) {
-		
+	if ( c < _session->_first_chunk || c > _session->_last_chunk ) {
 		fprintf(stderr, "Invalid Free! %p is out of range!\n", ptr);
 		return;
 	}
-
-	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
 	debug("[*] Freeing chunk at %p\n", c);
 
@@ -218,8 +222,6 @@ void my_free(void *ptr) {
 		c->next_free = NULL;
 
 	} else {
-		if (_session->_first_free_chunk->next_free == NULL)
-			_session->_first_free_chunk->next_free = c;
 
 		if (_session->_last_free_chunk) /* just in case... */
 			_session->_last_free_chunk->next_free = c;

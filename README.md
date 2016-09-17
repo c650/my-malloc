@@ -5,3 +5,5 @@ This is an experiment. I set out to learn more about how memory management is ac
 Again, this is a learning experience -- and as of now this code shouldn't really be used or relied on.
 
 Valgrind shows no errors at this point (with what's done in [main.c](https://github.com/c650/my-malloc/blob/master/src/main.c))
+
+currently compiling but has 1 error on runtime (sept 17, 2016, 5:31:05)
