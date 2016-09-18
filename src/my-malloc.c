@@ -167,15 +167,13 @@ void *my_realloc(void *ptr, size_t size) {
 		my_free(ptr);
 		return NULL;
 	}
+	
+	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
-	if ( ptr < (void*)((char*)_session->_first_chunk + sizeof(_chunk))
-		|| ptr > (void*)((char*)_session->_last_chunk + sizeof(_chunk)) ) {
-		
+	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz ) {	
 		fprintf(stderr, "%p is not a reallocatable memory space.\n", ptr);
 		return NULL;
 	}
-
-	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
 	/* We have to make a bigger chunk if _more_ memory is requested. */
 	if (size > c->_chunk_sz) {
