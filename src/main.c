@@ -55,7 +55,6 @@ int main(void) {
 
 	my_free(larr);
 
-	printf("freeing %p\n", buf);
 	my_free(buf);
 
 	printf("end.\n");

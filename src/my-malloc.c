@@ -197,7 +197,7 @@ void my_free(void *ptr) {
 	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
 	/* verify that the pointer is in our heap range */
-	if ( c < _session->_first_chunk || c > _session->_last_chunk ) {
+	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz) {
 		fprintf(stderr, "Invalid Free! %p is out of range!\n", ptr);
 		return;
 	}
