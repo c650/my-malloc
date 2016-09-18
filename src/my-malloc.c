@@ -215,15 +215,20 @@ void *my_realloc(void *ptr, size_t size) {
 			if (_session->_first_free_chunk == c2)
 				_session->_first_free_chunk = c2->next_free;
 
-			_session->_chunks_allocated--;
-		}
+			c->_chunk_sz += c2->_chunk_sz + sizeof(_chunk);
 
-		char *new_mem = (char*)my_malloc( size );
-		for (int i = 0; i < c->_chunk_sz; i++) {
-			new_mem[i] = ((char*)ptr)[i];
+			_session->_chunks_allocated--;
+		} else {
+
+			int *new_mem = (int*)my_malloc( size );
+			
+			int i = 0, n = c->_chunk_sz / 4;			
+			for (; i < n; i++) {
+				new_mem[i] = ((int*)ptr)[i];
+			}
+			my_free(ptr);
+			ptr = (void*)new_mem;
 		}
-		my_free(ptr);
-		ptr = (void*)new_mem;
 	}
 
 	return ptr;
@@ -241,7 +246,7 @@ void my_free(void *ptr) {
 		return;
 	}
 
-	debug("[*] Freeing chunk at %p\n", c);
+	debug("[*] Freeing chunk at %p, of size %i bytes\n", c, (int)(c->_chunk_sz) + sizeof(_chunk));
 
 	c->_free = FREE;
 
