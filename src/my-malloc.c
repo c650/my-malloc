@@ -8,10 +8,10 @@
 #include "my-malloc.h"
 
 static _mem_session *_session = NULL;
-//static int _debug_itr = 0;
+static int _debug_itr = 0;
 
 #include <stdarg.h>
-//#define DEBUG
+#define DEBUG
 static void debug(char* fmt, ...) {
 	#ifdef DEBUG
 
@@ -142,7 +142,6 @@ void *my_malloc(size_t bytes) {
 
 	}
 	debug("\t_session->_first_free_chunk = %p\n", _session->_first_free_chunk);
-	debug("\t_session->_last_free_chunk = %p\n", _session->_last_free_chunk);
 
 	return (sizeof(_chunk) + (char*)c);
 	/* will break if all resources are used*/
@@ -152,15 +151,18 @@ void *my_malloc(size_t bytes) {
 void *my_calloc(size_t nmemb, size_t size) {
 	
 	/* cast to char* to deal with bytes */
-	char *mem = (char*)my_malloc(nmemb * size);
+	int *mem = (int*)my_malloc(nmemb * size);
 
-	int i = 0, n = nmemb*size;
-	for (; i < n; i++) mem[i] = 0x00;
+	int i = 0, n = nmemb*(size/4);
+	for (; i < n; i++) mem[i] = 0;
 
 	return (void*)mem;
 }
 
 void *my_realloc(void *ptr, size_t size) {
+
+	debug("my_realloc(%p, %i)\n", ptr, (int)size);
+
 	if (ptr == NULL) {
 		return my_malloc(size);
 	} else if (size == 0) {
@@ -177,6 +179,45 @@ void *my_realloc(void *ptr, size_t size) {
 
 	/* We have to make a bigger chunk if _more_ memory is requested. */
 	if (size > c->_chunk_sz) {
+
+		/* if the next chunk is free... */
+		if (c->next->_free == FREE && c->next->_chunk_sz + sizeof(_chunk) + c->_chunk_sz >= size) {
+
+			_chunk *n, *p, *c2;
+
+			c2 = c->next;
+			/* take c->next out of the chunks lists */
+			n = c2->next;
+			p = c2->prev;
+
+			//debug("c2 = %p\nn = %p\np = %p\n", c2, n, p);
+
+			p->next = n;
+			if (n) n->prev = p;
+
+			if (_session->_last_chunk == c2)
+				_session->_last_chunk = c2->prev;			
+
+			/*
+				c2 will never be _session->_first_chunk because `c` comes before it
+			*/
+
+			/* take it out of free chunks list */
+			n = c2->next_free;
+			p = c2->prev_free;
+
+			p->next_free = n;
+			if (n) n->prev_free = p;
+
+			if (_session->_last_free_chunk == c2)
+				_session->_last_free_chunk = c2->prev_free;
+
+			if (_session->_first_free_chunk == c2)
+				_session->_first_free_chunk = c2->next_free;
+
+			_session->_chunks_allocated--;
+		}
+
 		char *new_mem = (char*)my_malloc( size );
 		for (int i = 0; i < c->_chunk_sz; i++) {
 			new_mem[i] = ((char*)ptr)[i];
@@ -209,7 +250,6 @@ void my_free(void *ptr) {
 		chunk linked list...
 	*/
 	debug("\t_session->_first_free_chunk = %p\n", _session->_first_free_chunk);
-	debug("\t_session->_last_free_chunk = %p\n", _session->_last_free_chunk);
 	if (_session->_first_free_chunk == NULL) {
 
 		/* if there are no chunks... */
@@ -235,13 +275,10 @@ void my_free(void *ptr) {
 
 	/* Shouldn't have two free chunks back-to-back */
 	if (c->next != NULL && c->next->_free == FREE) {
-		
 		_merge_chunks(c, c->next);
-
-	} else if (c->prev != NULL && c->prev->_free == FREE) {
-
+	}
+	if (c->prev != NULL && c->prev->_free == FREE) {
 		_merge_chunks(c->prev, c);
-
 	}
 }
 

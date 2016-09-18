@@ -57,6 +57,20 @@ int main(void) {
 
 	my_free(buf);
 
-	printf("end.\n");
+
+	printf("ALLOCATE LARR\n");
+	larr = (long*)my_malloc(sizeof(long) * 50);
+
+	printf("ALLOCATE LARR_TMP\n");
+	larr_tmp = (long*)my_malloc(sizeof(long) * 100);
+
+	printf("FREE LARR_TMP\n");
+	my_free(larr_tmp);
+
+	printf("REALLOCATE LARR\n");
+	my_realloc(larr, sizeof(long)*150);
+
+	printf("FREE LARR\n");
+	my_free(larr);
 
 }
