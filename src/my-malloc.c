@@ -164,6 +164,8 @@ void *my_malloc(size_t bytes) {
 
 void *my_calloc(size_t nmemb, size_t size) {
 	
+	debug("my_calloc(%i, %i)\n", (int)nmemb, (int)size);
+
 	/* cast to int* to deal with 4-byte intervals */
 	int *mem = (int*)my_malloc(nmemb * size);
 
@@ -261,7 +263,7 @@ void my_free(void *ptr) {
 		return;
 	}
 
-	debug("\tFreeing chunk at %p, of size %i bytes.\n", c, (int)(c->_chunk_sz) + sizeof(_chunk));
+	debug("\tchunk @ %p; size: %i B\n", c, (int)(c->_chunk_sz) + sizeof(_chunk));
 
 	c->_free = FREE;
 
