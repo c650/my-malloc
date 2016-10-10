@@ -123,7 +123,7 @@ void *my_malloc(size_t bytes) {
 		   If so, let's create a chunk to handle the rest
 		   of the memory, so that we don't take more than
 		   we truly need. */
-		if (c->_chunk_sz >= cnt + (4 + sizeof(_chunk) )) {
+		if (c->_chunk_sz >= cnt + (sizeof(int) + sizeof(_chunk) )) {
 
 			/* called `d` because d comes after c! */
 			_chunk *d = (_chunk*)((char*)c + sizeof(_chunk) + c->_chunk_sz);
@@ -158,7 +158,6 @@ void *my_malloc(size_t bytes) {
 	   resulting in a pointer pointing to the
 	   beginning of user data space*/
 	return (sizeof(_chunk) + (char*)c);
-	/* will break if all resources are used*/
 	/* TODO: getrlimit stuff */
 }
 
@@ -236,10 +235,12 @@ void *my_realloc(void *ptr, size_t size) {
 			_session->_chunks_allocated--;
 		} else {
 
-			int *new_mem = (int*)my_malloc( size );
+			int *new_mem = my_malloc( size );
+
+			if (!new_mem) return NULL; /* we have to see if my_malloc was successful. */
 
 			/* _chunk_sz will *always* be a multiple of 4. */
-			int i = 0, n = c->_chunk_sz / 4;
+			int i = 0, n = c->_chunk_sz / sizeof(int);
 
 			for (; i < n; i++) new_mem[i] = ((int*)ptr)[i];
 
