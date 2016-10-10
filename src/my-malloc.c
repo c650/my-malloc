@@ -18,7 +18,7 @@ static _mem_session *_session = NULL;
 static int _debug_itr = 0;
 
 static void debug(char* fmt, ...) {
-	
+
 	char buf[256];
 
 	va_list ap;
@@ -96,14 +96,14 @@ void *my_malloc(size_t bytes) {
 
 		/* patch free chunks */
 		if (c->next_free && c->prev_free) {
-			/* runs if c is in the middle of the freed chunks list */		
+			/* runs if c is in the middle of the freed chunks list */
 			c->next_free->prev_free = c->prev_free;
 			c->prev_free->next_free = c->next_free;
-		
+
 		} else if (c->next_free) {
 			/* runs if c is the first of the freed chunks list */
 			c->next_free->prev_free = NULL;
-		
+
 		} else if (c->prev_free) {
 			/* runs if c is the last of the freed chunks list */
 			c->prev_free->next_free = NULL;
@@ -111,7 +111,7 @@ void *my_malloc(size_t bytes) {
 
 		if (_session->_first_free_chunk == c)
 			_session->_first_free_chunk = c->next_free;
-		
+
 		if (_session->_last_free_chunk == c)
 			_session->_last_free_chunk = c->prev_free;
 
@@ -163,7 +163,7 @@ void *my_malloc(size_t bytes) {
 }
 
 void *my_calloc(size_t nmemb, size_t size) {
-	
+
 	debug("my_calloc(%i, %i)\n", (int)nmemb, (int)size);
 
 	/* cast to int* to deal with 4-byte intervals */
@@ -185,10 +185,10 @@ void *my_realloc(void *ptr, size_t size) {
 		my_free(ptr);
 		return NULL;
 	}
-	
+
 	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
-	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz ) {	
+	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz ) {
 		fprintf(stderr, "%p is not a reallocatable memory space.\n", ptr);
 		return NULL;
 	}
@@ -210,7 +210,7 @@ void *my_realloc(void *ptr, size_t size) {
 			if (n) n->prev = p;
 
 			if (_session->_last_chunk == c2)
-				_session->_last_chunk = c2->prev;			
+				_session->_last_chunk = c2->prev;
 
 			/*
 				c2 will never be _session->_first_chunk because `c` comes before it
@@ -237,12 +237,12 @@ void *my_realloc(void *ptr, size_t size) {
 		} else {
 
 			int *new_mem = (int*)my_malloc( size );
-			
+
 			/* _chunk_sz will *always* be a multiple of 4. */
-			int i = 0, n = c->_chunk_sz / 4;			
-			
+			int i = 0, n = c->_chunk_sz / 4;
+
 			for (; i < n; i++) new_mem[i] = ((int*)ptr)[i];
-			
+
 			my_free(ptr);
 			ptr = (void*)new_mem;
 		}
@@ -327,7 +327,7 @@ _chunk *_find_free_chunk(size_t bytes) {
 
 	_chunk *curr = _session->_first_free_chunk;
 
-	while(curr != NULL && (curr->_chunk_sz < bytes || curr->_free == NOT_FREE)) {		
+	while(curr != NULL && (curr->_chunk_sz < bytes || curr->_free == NOT_FREE)) {
 		curr = curr->next_free;
 	}
 
@@ -338,13 +338,13 @@ _chunk *_find_free_chunk(size_t bytes) {
 void _merge_chunks(_chunk *a, _chunk *b) {
 
 	debug("_merge_chunks(%p, %p)\n", a, b);
-	
+
 	a->next_free = b->next_free;
 	if (b->next_free) b->next_free->prev_free = a;
 
 	a->next = b->next;
 	if (b->next) b->next->prev = a;
-	
+
 	if (_session->_last_free_chunk == b)
 		_session->_last_free_chunk = a;
 

@@ -17,14 +17,14 @@ int main(void) {
 	num = my_malloc(sizeof(int));
 	*num = 10101;
 
-	printf("FREE NUM\n");	
+	printf("FREE NUM\n");
 	my_free(num);
 
 	printf("ALLOCATE LNUM\n");
 	lnum = my_malloc(sizeof(long));
-	
+
 	*lnum = 101010;
-	
+
 	printf("FREE LNUM\n");
 	my_free(lnum);
 
@@ -49,12 +49,12 @@ int main(void) {
 	printf("C-ALLOCATE LARR\n");
 	larr = my_calloc(17, sizeof(long));
 	for (int i = 0; i < 17; i++) {
-		larr[i] = 595959;	
+		larr[i] = 595959;
 	}
 
 	printf("ALLOCATE BUF\n");
 	int *buf = (int*)my_malloc(sizeof(int));
-	
+
 	printf("REALLOCATE LARR\n");
 	long *larr_tmp = NULL;
 	if ((larr_tmp = my_realloc(larr, 30 * sizeof(long) )) == NULL) {
