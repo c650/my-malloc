@@ -13,12 +13,13 @@ static _mem_session *_session = NULL;
 #define DEBUG
 
 #ifdef DEBUG
-
-#include <stdarg.h>
-static int _debug_itr = 0;
+	#include <stdarg.h>
+	static int _debug_itr = 0;
+#endif
 
 static void debug(char* fmt, ...) {
 
+#ifdef DEBUG
 	char buf[256];
 
 	va_list ap;
@@ -29,13 +30,9 @@ static void debug(char* fmt, ...) {
 	va_end(ap);
 
 	printf("[%3i] %s",_debug_itr++, buf);
-
-}
-#else
-static void debug(char* fmt, ...) {
+#endif
 	return;
 }
-#endif
 
 void *my_malloc(size_t bytes) {
 
@@ -89,6 +86,7 @@ void *my_malloc(size_t bytes) {
 		debug("\tNew chunk at %p\n", c);
 		debug("\t_session->_first_chunk = %p\n", _session->_first_chunk);
 		debug("\t_session->_last_chunk = %p\n", _session->_last_chunk);
+		debug("\tcurrent program break: %p\n", sbrk(0));
 
 	} else {
 
