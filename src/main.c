@@ -4,7 +4,7 @@
 
 #include "my-malloc.h"
 
-#define BUF__SIZ 4095
+#define BUF__SIZ 8192
 
 int main(void) {
 
@@ -84,7 +84,6 @@ int main(void) {
 	printf("FREE LARR\n");
 	my_free(larr);
 
-	/*
 	printf("ALLOCATE BIG STRING\n");
 	char *cptr = (char*)my_calloc(BUF__SIZ+1, sizeof(char));
 
@@ -96,6 +95,5 @@ int main(void) {
 	printf("cptr = %s\n", cptr);
 
 	my_free(cptr);
-	*/
 
 }
