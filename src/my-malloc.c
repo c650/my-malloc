@@ -8,7 +8,7 @@
 
 #include "my-malloc.h"
 
-static _mem_session *_session = NULL;
+#define NUM_SESSIONS 2
 
 #define DEBUG
 
@@ -34,11 +34,14 @@ static void debug(char* fmt, ...) {
 	return;
 }
 
+static _outer_mem_session *_outer_session = NULL; /* for outer session */
+static _mem_session *session;
+
 void *my_malloc(size_t bytes) {
 
 	debug("my_malloc(%i)\n", (int)bytes);
 
-	if (!_session && _create_session() < 0) {
+	if (!_outer_session && _create_session() < 0) {
 		return NULL;
 	}
 
@@ -303,12 +306,20 @@ int _create_session() {
 
 	void *ptr; /* doing this just in case something fails... */
 
-	if ( (ptr = sbrk(sizeof(_mem_session) )) == (void*)(-1) ) {
+	if ( (ptr = sbrk( sizeof(_outer_mem_session) )) == (void*)(-1) ) {
 		fprintf(stderr, "Failed to start memory session!\n");
 		return -1;
 	}
 
-	_session = (_mem_session*)ptr;
+	_outer_session = (_outer_mem_session*)ptr;
+
+	if ( (ptr = sbrk( sizeof(_mem_session) * NUM_SESSIONS )) == (void*)(-1) ) {
+		fprintf(stderr, "Failed to start inner-memory session(s)!\n");
+		return -1;
+	}
+
+	_outer_session->sessions = (_mem_session*)ptr;
+	_outer_session->num_sessions = NUM_SESSIONS;
 
 	/* go ahead and initialize attributes of _session */
 	_session->_first_chunk = NULL;

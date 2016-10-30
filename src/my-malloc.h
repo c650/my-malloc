@@ -22,7 +22,7 @@ typedef enum _free_t {
 	side of the current chunk.
 
 */
-typedef struct _chunk {
+typedef struct {
 	size_t  _chunk_sz; /* not including metadata */
 
 	struct _chunk *next, /* sizeof(_chunk*) = 8 */
@@ -44,18 +44,26 @@ typedef struct _chunk {
 	The struct also contains an attribute _chunks_allocated
 	that keeps track of the number of chunks currently in RAM.
 */
-typedef struct _mem_session {
+typedef struct {
 	_chunk *_first_chunk, /* sizeof(_chunk*) = 8 */
 	       *_last_chunk,
 	       *_first_free_chunk,
 	       *_last_free_chunk;
 
 	size_t _chunks_allocated;
+	size_t max_size;
 
 	/* all attributes of this struct are 8-bytes on my machine
 	 	and this is good because it means that there won't be
 		any padding, hogging memory. #EmbeddedSystemsBeLike */
 } _mem_session;
+
+typedef struct {
+
+	_mem_session *sessions;
+	size_t num_sessions;
+
+} _outer_mem_session;
 
 /*
 	This does just what the normal malloc does,
