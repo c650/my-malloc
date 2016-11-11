@@ -37,6 +37,7 @@ static void debug(char* fmt, ...) {
 static _outer_mem_session *_outer_session = NULL; /* for outer session */
 static _mem_session *_session;
 static size_t min(size_t a, size_t b);
+static void _assign_session(size_t bytes);
 
 void *my_malloc(size_t bytes) {
 
@@ -49,10 +50,8 @@ void *my_malloc(size_t bytes) {
 	/* Round up to nearest multiple of 4. */
 	size_t cnt = (((bytes-1)>>2)<<2) + 4;
 
-	/*	we will use an appropriate session by determining whether to place
-		the new chunk in the last session (the session with all the bigger chunks)
-		or a session that holds ram between i*4096 and (i+1)*4096, where i = (bytes-1)/4096. */
-	_session = &_outer_session->sessions[ min( (bytes-1)/4096 , _outer_session->num_sessions-1 ) ];
+	/* see func impl for notes */
+	assign_session();
 
 	_chunk *c = _find_free_chunk( cnt );
 
@@ -194,10 +193,7 @@ void *my_realloc(void *ptr, size_t size) {
 
 	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
-	/*	we will use an appropriate session by determining whether to place
-		the new chunk in the last session (the session with all the bigger chunks)
-		or a session that holds ram between i*4096 and (i+1)*4096, where i = (bytes-1)/4096. */
-	_session = &_outer_session->sessions[ min( (c->_chunk_sz-1)/4096 , _outer_session->num_sessions-1 ) ];
+	_assign_session();
 
 	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz ) {
 		fprintf(stderr, "%p is not a reallocatable memory space.\n", ptr);
@@ -270,10 +266,7 @@ void my_free(void *ptr) {
 
 	_chunk *c = (_chunk*)((char*)ptr - sizeof(_chunk) );
 
-	/*	we will use an appropriate session by determining whether to place
-		the new chunk in the last session (the session with all the bigger chunks)
-		or a session that holds ram between i*4096 and (i+1)*4096, where i = (bytes-1)/4096. */
-	_session = &_outer_session->sessions[ min( (c->_chunk_sz-1)/4096 , _outer_session->num_sessions-1 ) ];
+	_assign_session();
 
 	/* verify that the pointer is in our heap range */
 	if ( c < _session->_first_chunk || c > _session->_last_chunk + _session->_last_chunk->_chunk_sz) {
@@ -353,10 +346,8 @@ int _create_session() {
 
 _chunk *_find_free_chunk(size_t bytes) {
 
-	/*	we will use an appropriate session by determining whether to place
-		the new chunk in the last session (the session with all the bigger chunks)
-		or a session that holds ram between i*4096 and (i+1)*4096, where i = (bytes-1)/4096. */
-	_session = &_outer_session->sessions[ min( (bytes-1)/4096 , _outer_session->num_sessions-1 ) ];
+	/* see func impl for notes */
+	_assign_session();
 
 	_chunk *curr = _session->_first_free_chunk;
 
@@ -391,4 +382,11 @@ void _merge_chunks(_chunk *a, _chunk *b) {
 
 static size_t min(size_t a, size_t b) {
 	return a < b ? a : b;
+}
+
+static void _assign_session(size_t bytes) {
+	/*	we will use an appropriate session by determining whether to place
+		the new chunk in the last session (the session with all the bigger chunks)
+		or a session that holds ram between i*4096 and (i+1)*4096, where i = (bytes-1)/4096. */
+	_session = &_outer_session->sessions[ min( (bytes-1)/4096 , _outer_session->num_sessions-1 ) ];
 }
