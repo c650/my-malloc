@@ -264,6 +264,10 @@ void my_free(void *ptr) {
 
 	debug("\tchunk @ %p; size: %i B\n", c, (int)(c->_chunk_sz) + sizeof(_chunk));
 
+	/* forget about freeing a chunk if it's already free */
+	if (c->_free == FREE)
+		return;
+
 	c->_free = FREE;
 
 	/*  Let's plop the chunk into our free
